@@ -20,7 +20,7 @@ class DrawArea extends Component {
             if(userAction.mouseDown) {
                 this.handleMouseDown({button: 0}, true, userAction.point);
             }else if(userAction.mouseMove) {
-                this.handleMouseMove(userAction.mouseEvent, true);
+                this.handleMouseMove({button: 0}, true, userAction.point);
             }else {
                 this.handleMouseUp(true);
             }
@@ -52,28 +52,28 @@ class DrawArea extends Component {
         }
     }
   
-    handleMouseMove(mouseEvent, socketData) {
+    handleMouseMove(mouseEvent, socketData, p) {
         if (!this.state.isDrawing) {
             return;
         }
   
-        const point = this.relativeCoordinatesForEvent(mouseEvent);
+        const point = (p != null) ? p : this.relativeCoordinatesForEvent(mouseEvent);
       
         this.setState(prevState =>  ({
             lines: prevState.lines.updateIn([prevState.lines.size - 1], line => line.push(point))
         }));
 
-        /*if(socketData != true) {
-            this.props.socket.emit('userDrawing', {mouseMove: true, mouseEvent: mouseEvent});
-        }*/
+        if(socketData != true) {
+            this.props.socket.emit('userDrawing', {mouseMove: true, point: point});
+        }
     }
   
     handleMouseUp(socketData) {
         this.setState({ isDrawing: false });
 
-        /*if(socketData != true) {
+        if(socketData != true) {
             this.props.socket.emit('userDrawing', {mouseUp: true});
-        }*/
+        }
     }
   
     relativeCoordinatesForEvent(mouseEvent) {
@@ -110,7 +110,12 @@ function Drawing({ lines }) {
 function DrawingLine({ line }) {
     const pathData = "M " +
         line.map(p => {
-            return `${p.get('x')} ${p.get('y')}`;
+            console.log(p.x);
+            if(p.x != null) {
+                return `${p.x} ${p.y}`;
+            }else {
+                return `${p.get('x')} ${p.get('y')}`;
+            }
         }).join(" L ");
   
     return <path className="path" d={pathData} />;
