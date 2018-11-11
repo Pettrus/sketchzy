@@ -10,7 +10,7 @@ const id = Math.round(Math.random());
 class Room extends Component {
 
     state =  {
-        users: null,
+        users: [],
         room: null,
         nameSaved: false,
         nickname: ""
@@ -25,19 +25,8 @@ class Room extends Component {
             room = Math.random().toString(36).substring(7);
         }
 
-        socket.on('connect', () => {
-            socket.emit('joinroom', room);
-            this.setState({
-                room: room
-            });
-        });
-
-        socket.on('users', (users) => {
-            console.log(users.length);
-            
-            this.setState({
-                users: users.length
-            });
+        this.setState({
+            room: room
         });
     }
 
@@ -58,6 +47,17 @@ class Room extends Component {
     }
 
     toRoom = () => {
+        socket.emit('joinroom', {
+            room: this.state.room,
+            nickname: this.state.nickname
+        });
+
+        socket.on('users', (users) => {
+            this.setState({
+                users: users
+            });
+        });
+
         this.setState({
             nameSaved: true
         });
@@ -65,9 +65,9 @@ class Room extends Component {
 
     render() {
         return (
-            <div>
+            <div className="container">
                 <div>
-                    {(this.state.users == 1 || !this.state.nameSaved) &&
+                    {(this.state.users.length == 1 || !this.state.nameSaved) &&
                         <div>
                             <div className="row">
                                 <div className="col-md-4 mx-auto">
@@ -115,10 +115,28 @@ class Room extends Component {
                         </div>
                     }
 
-                    {this.state.users > 1 && this.state.nameSaved &&
+                    {this.state.users.length > 1 && this.state.nameSaved &&
                         <div>
-                            canvas
-                            <DrawArea socket={socket}></DrawArea>
+                            <div className="row">
+                                <div className="col-md-3">
+                                    <div className="list-group">
+                                        {this.state.users.map((user, i) => (
+                                            <div key={i} className="list-group-item list-group-item-action flex-column align-items-start">
+                                                <div className="d-flex w-100 justify-content-between">
+                                                    <h5 className="mb-1">{user}</h5>
+                                                    <small>1 turn</small>
+                                                </div>
+                                                
+                                                <small>100 points</small>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="col-md-9">
+                                    <DrawArea socket={socket}></DrawArea>
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>

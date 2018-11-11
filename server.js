@@ -16,12 +16,23 @@ app.get('/', function (req, res) {
 
 app.listen(process.env.PORT || 8080);
 
-io.sockets.on('connection', function (socket) {
-    socket.on('joinroom', (roomNum) => {
-        console.log("Sala: " + roomNum);
-        socket.join(roomNum);
+let rooms = [];
 
-        io.sockets.in(roomNum).emit('users', io.nsps['/'].adapter.rooms[roomNum]);
+io.sockets.on('connection', function (socket) {
+    socket.on('joinroom', (user) => {
+        socket.join(user.room);
+        socket.nickname = user.nickname;
+
+        if(rooms[user.room] == null) {
+            rooms[user.room] = [user.nickname];
+        }else {
+            rooms[user.room].push(user.nickname);
+        }
+
+        console.log(rooms[user.room]);
+
+        //io.sockets.in(user.room).emit('users', io.nsps['/'].adapter.rooms[roomNum]);
+        io.sockets.in(user.room).emit('users', rooms[user.room]);
     });
 
     socket.on('userDrawing', (userAction) => {
@@ -30,7 +41,5 @@ io.sockets.on('connection', function (socket) {
 });
 
 server.listen(8081, function(){
-    console.log("Rodando o server!");
+    console.log("Server running on port: 8080");
 });
-
-console.log("Server running on port: 8080");

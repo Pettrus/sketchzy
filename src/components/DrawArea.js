@@ -88,10 +88,10 @@ class DrawArea extends Component {
         return (
             <div
                 className="drawArea"
-            ref="drawArea"
-            onMouseDown={this.handleMouseDown}
-            onMouseMove={this.handleMouseMove}>
-            <Drawing lines={this.state.lines} />
+                ref="drawArea"
+                onMouseDown={this.handleMouseDown}
+                onMouseMove={this.handleMouseMove}>
+                <Drawing lines={this.state.lines} />
         </div>
       );
     }
