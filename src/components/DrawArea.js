@@ -36,7 +36,7 @@ class DrawArea extends Component {
     }
   
     handleMouseDown(mouseEvent, socketData, p) {
-        if (mouseEvent.button != 0) {
+        if (mouseEvent.button != 0 || (!this.props.playerTurn && socketData != true)) {
             return;
         }
   
@@ -53,7 +53,8 @@ class DrawArea extends Component {
     }
   
     handleMouseMove(mouseEvent, socketData, p) {
-        if (!this.state.isDrawing) {
+        console.log(socketData);
+        if (!this.state.isDrawing || (!this.props.playerTurn && socketData != true)) {
             return;
         }
   

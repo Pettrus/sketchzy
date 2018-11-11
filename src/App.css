@@ -1,7 +1,7 @@
 .drawArea {
   width: 100%;
-  height: 100%;
-  border: 1px solid black;
+  height: 650px;
+  border: 0.5px solid #C0C0C0;
   float: left;
   cursor: crosshair;
 }

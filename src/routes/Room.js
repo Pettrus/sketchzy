@@ -10,10 +10,15 @@ const id = Math.round(Math.random());
 class Room extends Component {
 
     state =  {
+        me: {},
         users: [],
         room: null,
         nameSaved: false,
-        nickname: ""
+        nickname: "",
+        playerTurn: false,
+        drawing: null,
+        waiting: [],
+        doneDrawing: []
     }
 
     componentDidMount() {
@@ -47,20 +52,47 @@ class Room extends Component {
     }
 
     toRoom = () => {
+        const id = Math.random().toString(36);
+        this.setState({
+            me: {
+                id: id,
+                nickname: this.state.nickname
+            }
+        });
+
         socket.emit('joinroom', {
             room: this.state.room,
-            nickname: this.state.nickname
+            nickname: this.state.nickname,
+            id: id
         });
 
         socket.on('users', (users) => {
             this.setState({
                 users: users
             });
+
+            if(users.length > 1) {
+                this.startGame();
+            }
         });
 
         this.setState({
             nameSaved: true
         });
+    }
+
+    startGame = () => {
+        const userSelected = this.state.users[Math.floor(Math.random() * this.state.users.length)];
+        this.setState({
+            waiting: this.state.users,
+            drawing: userSelected
+        });
+
+        if(userSelected.id == this.state.me.id) {
+            this.setState({
+                playerTurn: true
+            });
+        }
     }
 
     render() {
@@ -70,7 +102,7 @@ class Room extends Component {
                     {(this.state.users.length == 1 || !this.state.nameSaved) &&
                         <div>
                             <div className="row">
-                                <div className="col-md-4 mx-auto">
+                                <div className="col-md-5 mx-auto">
                                     <div className="card">
                                         <div className="card-body">
                                             {!this.state.nameSaved &&
@@ -120,10 +152,10 @@ class Room extends Component {
                             <div className="row">
                                 <div className="col-md-3">
                                     <div className="list-group">
-                                        {this.state.users.map((user, i) => (
-                                            <div key={i} className="list-group-item list-group-item-action flex-column align-items-start">
+                                        {this.state.users.map(user => (
+                                            <div key={user.id} className="list-group-item list-group-item-action flex-column align-items-start">
                                                 <div className="d-flex w-100 justify-content-between">
-                                                    <h5 className="mb-1">{user}</h5>
+                                                    <h5 className="mb-1">{user.nickname}</h5>
                                                     <small>1 turn</small>
                                                 </div>
                                                 
@@ -134,7 +166,7 @@ class Room extends Component {
                                 </div>
 
                                 <div className="col-md-9">
-                                    <DrawArea socket={socket}></DrawArea>
+                                    <DrawArea socket={socket} playerTurn={this.state.playerTurn}></DrawArea>
                                 </div>
                             </div>
                         </div>

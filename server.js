@@ -22,11 +22,18 @@ io.sockets.on('connection', function (socket) {
     socket.on('joinroom', (user) => {
         socket.join(user.room);
         socket.nickname = user.nickname;
+        socket.id = user.id;
 
         if(rooms[user.room] == null) {
-            rooms[user.room] = [user.nickname];
+            rooms[user.room] = [{
+                id: user.id,
+                nickname: user.nickname
+            }];
         }else {
-            rooms[user.room].push(user.nickname);
+            rooms[user.room].push({
+                id: user.id,
+                nickname: user.nickname
+            });
         }
 
         console.log(rooms[user.room]);
