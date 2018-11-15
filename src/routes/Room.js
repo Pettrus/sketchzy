@@ -18,7 +18,10 @@ class Room extends Component {
         playerTurn: false,
         drawing: null,
         waiting: [],
-        doneDrawing: []
+        doneDrawing: [],
+        itemName: null,
+        correctAnswer: false,
+        guesses: []
     }
 
     componentDidMount() {
@@ -70,9 +73,28 @@ class Room extends Component {
             this.setState({
                 users: users
             });
+        });
 
-            if(users.length > 1) {
-                this.startGame();
+        socket.on('playerTurn', (playerTurn) => {
+            let myTurn = false;
+
+            if(playerTurn.user.id == this.state.me.id) {
+                myTurn = true;
+            }
+
+            this.setState({
+                waiting: this.state.users,
+                drawing: playerTurn.user,
+                playerTurn: myTurn,
+                itemName: playerTurn.itemName
+            });
+        });
+
+        socket.on('guess', (guess) => {
+            if(guess.name !== this.state.me.nickname) {
+                this.setState(prevState => ({
+                    guesses: [...prevState.guesses, guess]
+                }));
             }
         });
 
@@ -81,24 +103,40 @@ class Room extends Component {
         });
     }
 
-    startGame = () => {
-        const userSelected = this.state.users[Math.floor(Math.random() * this.state.users.length)];
-        this.setState({
-            waiting: this.state.users,
-            drawing: userSelected
-        });
+    sendGuess = (evt) => {
+        evt.preventDefault();
 
-        if(userSelected.id == this.state.me.id) {
+        console.log(this.input.value);
+
+        if(this.state.itemName.toLowerCase() === this.input.value.toLowerCase()) {
             this.setState({
-                playerTurn: true
+                correctAnswer: true
             });
+        }else {
+            const guess = {
+                name: this.state.me.nickname,
+                guess: this.input.value
+            };
+
+            this.setState(prevState => ({
+                guesses: [...prevState.guesses, guess]
+            }));
+
+            socket.emit('guess', guess, this.state.room);
         }
+
+        this.input.value = "";
     }
 
     render() {
         return (
             <div className="container">
                 <div>
+                    {this.state.playerTurn && this.state.itemName != null &&
+                        <div className="alert alert-primary text-center" role="alert">
+                            Draw a {this.state.itemName}
+                        </div>
+                    }
                     {(this.state.users.length == 1 || !this.state.nameSaved) &&
                         <div>
                             <div className="row">
@@ -166,7 +204,25 @@ class Room extends Component {
                                 </div>
 
                                 <div className="col-md-9">
-                                    <DrawArea socket={socket} playerTurn={this.state.playerTurn}></DrawArea>
+                                    <DrawArea socket={socket} playerTurn={this.state.playerTurn} room={this.state.room}></DrawArea>
+                                </div>
+                            </div>
+
+                            <div className="row">
+                                <div className="col-md-9 offset-md-3">
+                                    <div className="guesses">
+                                        {this.state.guesses.map((guess, i) => (
+                                            <div key={i}>{guess.name}: {guess.guess}</div>
+                                        ))}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <form onSubmit={this.sendGuess}>
+                                            <input id="guess" name="guess" type="text" className="form-control" maxLength="100" placeholder="Take a guess"
+                                                ref={(input) => this.input = input}
+                                                disabled={this.state.correctAnswer} />
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>

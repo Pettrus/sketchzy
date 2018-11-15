@@ -16,6 +16,15 @@ app.get('/', function (req, res) {
 
 app.listen(process.env.PORT || 8080);
 
+const itensName = [
+    "Banana",
+    "Ladder",
+    "Computer",
+    "Zebra",
+    "Frog",
+    "Apple"
+];
+
 let rooms = [];
 
 io.sockets.on('connection', function (socket) {
@@ -40,10 +49,22 @@ io.sockets.on('connection', function (socket) {
 
         //io.sockets.in(user.room).emit('users', io.nsps['/'].adapter.rooms[roomNum]);
         io.sockets.in(user.room).emit('users', rooms[user.room]);
+
+        if(rooms[user.room].length > 1) {
+            const sortedUser = rooms[user.room][Math.floor(Math.random() * rooms[user.room].length)];
+            io.sockets.in(user.room).emit('playerTurn', {
+                user: sortedUser,
+                itemName: itensName[Math.floor(Math.random() * itensName.length)]
+            });
+        }
     });
 
-    socket.on('userDrawing', (userAction) => {
-        socket.broadcast.emit('drawingCoordinates', userAction);
+    socket.on('guess', (guess, room) => {
+        io.sockets.in(room).emit('guess', guess);
+    });
+
+    socket.on('userDrawing', (userAction, room) => {
+        io.sockets.in(room).emit('drawingCoordinates', userAction);
     });
 });
 

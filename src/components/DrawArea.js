@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Immutable from 'immutable';
-import { Socket } from 'dgram';
 
 class DrawArea extends Component {
     constructor(props) {
@@ -48,12 +47,11 @@ class DrawArea extends Component {
         }));
 
         if(socketData != true) {
-            this.props.socket.emit('userDrawing', {mouseDown: true, point: point});
+            this.props.socket.emit('userDrawing', {mouseDown: true, point: point}, this.props.room);
         }
     }
   
     handleMouseMove(mouseEvent, socketData, p) {
-        console.log(socketData);
         if (!this.state.isDrawing || (!this.props.playerTurn && socketData != true)) {
             return;
         }
@@ -65,7 +63,7 @@ class DrawArea extends Component {
         }));
 
         if(socketData != true) {
-            this.props.socket.emit('userDrawing', {mouseMove: true, point: point});
+            this.props.socket.emit('userDrawing', {mouseMove: true, point: point}, this.props.room);
         }
     }
   
@@ -73,7 +71,7 @@ class DrawArea extends Component {
         this.setState({ isDrawing: false });
 
         if(socketData != true) {
-            this.props.socket.emit('userDrawing', {mouseUp: true});
+            this.props.socket.emit('userDrawing', {mouseUp: true}, this.props.room);
         }
     }
   
@@ -111,7 +109,6 @@ function Drawing({ lines }) {
 function DrawingLine({ line }) {
     const pathData = "M " +
         line.map(p => {
-            console.log(p.x);
             if(p.x != null) {
                 return `${p.x} ${p.y}`;
             }else {
